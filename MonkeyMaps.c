@@ -8,6 +8,8 @@ int main(int argc, char* argv[]) {
     SDL_Window* window = NULL;
     SDL_Surface* screenSurface = NULL;
     SDL_Surface* imageSurface = NULL;
+    SDL_Event event;
+    bool quit = false;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -21,7 +23,7 @@ int main(int argc, char* argv[]) {
     }
 
     screenSurface = SDL_GetWindowSurface(window);
-    imageSurface = IMG_Load("Map.png");
+    imageSurface = IMG_Load("image.png");
     if (imageSurface == NULL) {
         printf("Unable to load image! SDL Error: %s\n", SDL_GetError());
         return 1;
@@ -30,7 +32,13 @@ int main(int argc, char* argv[]) {
     SDL_BlitSurface(imageSurface, NULL, screenSurface, NULL);
     SDL_UpdateWindowSurface(window);
 
-    SDL_Delay(5000);
+    while (!quit) {
+        while (SDL_PollEvent(&event) != 0) {
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
+    }
 
     SDL_FreeSurface(imageSurface);
     SDL_DestroyWindow(window);
