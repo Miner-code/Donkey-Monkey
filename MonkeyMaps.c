@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     }
 
     screenSurface = SDL_GetWindowSurface(window);
-    imageSurface = IMG_Load("image.png");
+    imageSurface = IMG_Load("Map.png");
     if (imageSurface == NULL) {
         printf("Unable to load image! SDL Error: %s\n", SDL_GetError());
         return 1;
