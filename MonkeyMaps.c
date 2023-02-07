@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -6,9 +7,7 @@
 int main(int argc, char* argv[]) {
     SDL_Window* window = NULL;
     SDL_Surface* screenSurface = NULL;
-    SDL_Rect platform1 = { 0, SCREEN_HEIGHT - 50, 100, 50 };
-    SDL_Rect platform2 = { 150, SCREEN_HEIGHT - 100, 100, 50 };
-    SDL_Rect platform3 = { 300, SCREEN_HEIGHT - 150, 100, 50 };
+    SDL_Surface* imageSurface = NULL;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -22,15 +21,18 @@ int main(int argc, char* argv[]) {
     }
 
     screenSurface = SDL_GetWindowSurface(window);
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0xff, 0xff));
+    imageSurface = IMG_Load("image.png");
+    if (imageSurface == NULL) {
+        printf("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        return 1;
+    }
 
-    SDL_FillRect(screenSurface, &platform1, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-    SDL_FillRect(screenSurface, &platform2, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-    SDL_FillRect(screenSurface, &platform3, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-
+    SDL_BlitSurface(imageSurface, NULL, screenSurface, NULL);
     SDL_UpdateWindowSurface(window);
-    SDL_SaveBMP(screenSurface, "map.bmp");
 
+    SDL_Delay(5000);
+
+    SDL_FreeSurface(imageSurface);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
