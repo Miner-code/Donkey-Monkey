@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     SDL_FillRect(screenSurface, &platform3, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
     SDL_UpdateWindowSurface(window);
-    SDL_Delay(2000);
+    SDL_SaveBMP(screenSurface, "map.bmp");
 
     SDL_DestroyWindow(window);
     SDL_Quit();
