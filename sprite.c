@@ -1,14 +1,18 @@
 #include <SDL2/SDL.h>
-#include <time.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_mixer.h>
+#include <time.h>
+#include "music.h"
+
 typedef struct Barrel {
     int x;
     int y;
     int sense;
     int ligne;
 } Barrel;
+
 Barrel init_barrel(int x, int y, int sense, int ligne) {
     struct Barrel new_barrel;
     new_barrel.x = x;
@@ -57,20 +61,28 @@ void draw_filled_circle(SDL_Renderer* renderer, int x, int y, int radius) {
         x0++;
     }
 }
-void barrel_position(SDL_Renderer* renderer,Barrel* list){
+int barrel_position(SDL_Renderer* renderer,Barrel* list,int x,int y){
 int i=0;
-for(i;i<10;i++){
+int g=0;
+for(i;i<100;i++){
 if(list[i].y!=0){
+printf("%d \n",((x-list[i].x)*(x-list[i].x) + (y-list[i].y)*(y-list[i].y)));
 draw_filled_circle(renderer,list[i].x,list[i].y-10,8);
+if(((x+35-list[i].x)*(x+35-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 2000 || ((x+40-list[i].x)*(x+40-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 2000)
+{
+	
+    g = 1;
+}
 if(list[i].sense==0){
-list[i].x=list[i].x+2;
+list[i].x=list[i].x+5;
 }
 else{
-list[i].x=list[i].x-2;
+list[i].x=list[i].x-5;
 }
 list[i]=gravite(list[i]);
 
-}}}
+}}
+return g;}
 
 
 int limiteperso(int ligne,int x){
@@ -89,6 +101,10 @@ int main(int argc, char *argv[])
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("error initializing SDL: %s\n", SDL_GetError());
 	}
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+	{
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+	}
 	SDL_Window* win = SDL_CreateWindow("Donkey_kong", // creates a window
 									SDL_WINDOWPOS_CENTERED,
 									SDL_WINDOWPOS_CENTERED,
@@ -101,6 +117,8 @@ int main(int argc, char *argv[])
 	// creates a renderer to render our images
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
+	Mix_Music *music = LoadMusic("Musique/musique.mp3", 20);
+	
 	// creates a surface to load an image into the main memory
 	SDL_Surface* surface;
 
@@ -125,7 +143,7 @@ int main(int argc, char *argv[])
 	dest.h /= 18;
 
 	// sets initial x-position of object
-	dest.x = 0;
+	dest.x = 900;
 
 	// sets initial y-position of object
 	dest.y = 1000;
@@ -136,6 +154,8 @@ int main(int argc, char *argv[])
 
 	// speed of box
 	Barrel* list_tonneau = malloc(100 * sizeof(Barrel));
+	for(int z=0;z<100;z++){
+	list_tonneau[z]=init_barrel(0,0,0,0);}
 	list_tonneau[0]=init_barrel(1,500,0,6);
 	//list_tonneau[1]=init_barrel(1,500,1,5);
 	int compteur=1;
@@ -146,7 +166,9 @@ int main(int argc, char *argv[])
 	int ligne=1;
 	int senseM=1;
 	int aleatoire=0;
-
+	int timeur=200;
+	int game=0;
+	Mix_PlayMusic(music, -1);
 	// animation loop
 	while (!close) {
 		SDL_Event event;
@@ -218,7 +240,7 @@ int main(int argc, char *argv[])
 		if(dest.y + dest.h > 850){
 			ligne=1;}	
 		// right boundary
-		printf("%d\n",limiteperso(ligne,dest.x)-dest.h);
+		//printf("%d\n",limiteperso(ligne,dest.x)-dest.h);
 		if (dest.x /*+ dest.w*/ > 1000)
 			dest.x = 1000 /*- dest.w*/;
 
@@ -236,14 +258,18 @@ int main(int argc, char *argv[])
 			
 		
 		// clears the screen
+		
 		SDL_RenderClear(rend);
 		
 
 		// triggers the double buffers
 		// for multiple rendering
 		// Draw a diagonal line
-		
-		SDL_SetRenderDrawColor(rend, 255, 0, 0, 255); // set color to red
+		if(game==1){
+		SDL_SetRenderDrawColor(rend, 128, 0, 128, 255);
+		}
+		else{
+		SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);} // set color to red
 		
 		SDL_RenderDrawLine(rend, 0, 1000, 1000, 850); // draw a line from top-left to bottom-right
 		SDL_RenderDrawLine(rend, 1000, 850, 0, 700); // draw a line from top-left to bottom-right
@@ -254,13 +280,17 @@ int main(int argc, char *argv[])
 		SDL_RenderDrawLine(rend, 1000, 100, 0, 100);
 		SDL_SetRenderDrawColor(rend, 255, 255, 0, 255);
 		aleatoire = rand() % 100 + 1;
-		if(aleatoire==100){
+		if(timeur==0){
+		if(aleatoire>90){
+		timeur=500;
 		list_tonneau[compteur]=init_barrel(1,500,0,6);
-		if(compteur!=9){
+		if(compteur!=99){
 		compteur++;}
 		else{
 		compteur=0;}}
-		barrel_position(rend,list_tonneau);
+		}
+		else{timeur--;}
+		game=barrel_position(rend,list_tonneau,dest.x,dest.y);
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		if(senseM==2){
 		SDL_RenderCopy(rend, tex, NULL, &dest);}
@@ -288,4 +318,5 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
 

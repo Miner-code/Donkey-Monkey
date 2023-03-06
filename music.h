@@ -1,0 +1,1 @@
+Mix_Music *LoadMusic(char * path, int volume);

@@ -1,128 +1,292 @@
 #include <SDL2/SDL.h>
-#include <stdio.h>
-#include <SDL2/SDL_ttf.h>
-
-void drawRectangle(SDL_Renderer* renderer, int x, int y, int w, int h)
-{
-    SDL_Rect rect = { x, y, w, h };
-    SDL_RenderDrawRect(renderer, &rect);
-    SDL_RenderFillRect(renderer, &rect);
-    
-}
-
-int writeSmt(SDL_Renderer* renderer, int x, int y, int w, int h, const char * mot, SDL_Color color){
+#include <time.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_timer.h>
+typedef struct Barrel {
+    int x;
+    int y;
+    int sense;
+    int ligne;
+} Barrel;
+Barrel init_barrel(int x, int y, int sense, int ligne) {
+    struct Barrel new_barrel;
+    new_barrel.x = x;
+    new_barrel.y = y;
+    new_barrel.sense = sense;
+    new_barrel.ligne = ligne;
+    return new_barrel;}
+Barrel gravite(Barrel B){
+	if(B.ligne%2==1){
+	//printf("%d\n",1000-((ligne*150)-150+x*150/1000));
+	B.y= 1000-((B.ligne*150)-150+B.x*150/1000);}
+	else{
+	//printf("%d\n",1000-((ligne*150-150)+(1000-x)*150/1000));
+	B.y= 1000-((B.ligne*150-150)+(1000-B.x)*150/1000);}
+	if(B.x<0){
+		B.sense=0;
+		B.ligne--;}
+	if(B.x>1000){
+		B.sense=1;
+		B.ligne--;}
 	
-	TTF_Font* font = TTF_OpenFont("arial.ttf", 28);
-    if (font == NULL) {
-        printf("Font could not be loaded! TTF_Error: %s\n", TTF_GetError());
-        return 1;
-    }
-	// Create a surface from the text
-    SDL_Surface* surface = TTF_RenderText_Solid(font, mot, color);
-    if (surface == NULL) {
-        printf("Surface could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+	return B;}
+void draw_filled_circle(SDL_Renderer* renderer, int x, int y, int radius) {
+    int x0 = 0;
+    int y0 = radius;
+    int d = 1 - radius;
+    int delta_e = 3;
+    int delta_se = -2 * radius + 5;
 
-    // Create a texture from the surface
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (texture == NULL) {
-        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    // Render the texture
-    SDL_Rect dstRect = { x - w/2, y - h/2, w, h };
-    SDL_RenderCopy(renderer, texture, NULL, &dstRect);
-    
-    SDL_DestroyTexture(texture);
-}
-
-void affichageMenu(SDL_Renderer* renderer){
-	SDL_SetRenderDrawColor(renderer, 153, 81, 43, 255);
-	//SDL_SetRenderDrawWidth(renderer, 5); // Set the line width to 5 pixels
-	drawRectangle(renderer, 300, 400, 400, 100);
-	drawRectangle(renderer, 300, 550, 400, 100);
-	drawRectangle(renderer, 300, 700, 400, 100);
-	
-	SDL_Color color = { 255, 255, 255, 255 };
-	writeSmt(renderer, 500, 450, 275, 40, "Commencer une parties", color);
-	writeSmt(renderer, 500, 600, 300, 40, "Charger une sauvegarde", color);
-	writeSmt(renderer, 500, 750, 150, 40, "Quitter", color);
-	
-	SDL_Color color2 = { 235, 0, 0, 255 };
-	writeSmt(renderer, 500, 250, 450, 75, "Donkey Kong", color2);
-	
-}
-
-int main(int argc, char* argv[]) {
-  // Initialiser SDL
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    printf("Erreur lors de l'initialisation de SDL : %s\n", SDL_GetError());
-    return 1;
-  }
-
-  // Créer une fenêtre et un renderer
-  SDL_Window* window = SDL_CreateWindow("Menu graphique", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 900, 0);
-  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
- /* // Charger une image et créer une texture avec cette image
-  SDL_Surface* image_surface = SDL_LoadBMP("image.bmp");
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image_surface);
-*/
-  // Afficher la texture à l'écran
-  //SDL_RenderCopy(renderer, texture, NULL, NULL);
-  SDL_SetRenderDrawColor(renderer, 90, 58, 34, 255); // Set the drawing color to red
-  SDL_RenderClear(renderer); // Clear the entire screen with the given color
-  SDL_RenderPresent(renderer); // Update the screen
-
-
-// Initialize TTF
-    if (TTF_Init() < 0) {
-        printf("TTF could not initialize! TTF_Error: %s\n", TTF_GetError());
-        return 1;
-    }
-
-
-
-  //Fonction afficahge du menu
-	affichageMenu(renderer);
-	SDL_RenderPresent(renderer);
-  // Attendre les événements
-  SDL_Event event;
-  int quit = 0;
-  int x, y;
-  while (!quit) {
-    SDL_WaitEvent(&event);
-    switch (event.type) {
-      case SDL_QUIT:
-        quit = 1;
-        break;
-      case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
-          quit = 1;
+    while (y0 >= x0) {
+        SDL_RenderDrawLine(renderer, x - x0, y - y0, x + x0, y - y0);
+        SDL_RenderDrawLine(renderer, x - x0, y + y0, x + x0, y + y0);
+        SDL_RenderDrawLine(renderer, x - y0, y - x0, x + y0, y - x0);
+        SDL_RenderDrawLine(renderer, x - y0, y + x0, x + y0, y + x0);
+        
+        if (d < 0) {
+            d += delta_e;
+            delta_e += 2;
+            delta_se += 2;
+        } else {
+            d += delta_se;
+            delta_e += 2;
+            delta_se += 4;
+            y0--;
         }
-        break;
-      case SDL_MOUSEBUTTONDOWN:
-      	SDL_GetMouseState(&x, &y);
-	if (x >= 300 && x <= 700 && y >= 400 && y <= 500) {
-                        printf("Clic dans la zone de clique !\n");
-                    }
-	if (x >= 300 && x <= 700 && y >= 550 && y <= 650) {
-                        printf("Clic 2\n");
-                    }
-        if (x >= 300 && x <= 700 && y >= 700 && y <= 800) {
-                        printf("Clic quitter\n");
-                    }
+        x0++;
     }
-  }
-
-  // Nettoyer la mémoire
-  
-  //SDL_FreeSurface(image_surface);
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-SDL_Quit();
-
-return 0;
 }
+void barrel_position(SDL_Renderer* renderer,Barrel* list){
+int i=0;
+for(i;i<10;i++){
+if(list[i].y!=0){
+draw_filled_circle(renderer,list[i].x,list[i].y-10,8);
+if(list[i].sense==0){
+list[i].x=list[i].x+2;
+}
+else{
+list[i].x=list[i].x-2;
+}
+list[i]=gravite(list[i]);
+
+}}}
+
+
+int limiteperso(int ligne,int x){
+if(ligne%2==1){
+//printf("%d\n",1000-((ligne*150)-150+x*150/1000));
+return 1000-((ligne*150)-150+x*150/1000);}
+else{
+//printf("%d\n",1000-((ligne*150-150)+(1000-x)*150/1000));
+return 1000-((ligne*150-150)+(1000-x)*150/1000);}
+
+};
+int main(int argc, char *argv[])
+{
+ 	srand(time(NULL));
+	// returns zero on success else non-zero
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		printf("error initializing SDL: %s\n", SDL_GetError());
+	}
+	SDL_Window* win = SDL_CreateWindow("Donkey_kong", // creates a window
+									SDL_WINDOWPOS_CENTERED,
+									SDL_WINDOWPOS_CENTERED,
+									1000, 1000, 0);
+
+	// triggers the program that controls
+	// your graphics hardware and sets flags
+	Uint32 render_flags = SDL_RENDERER_ACCELERATED;
+
+	// creates a renderer to render our images
+	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
+
+	// creates a surface to load an image into the main memory
+	SDL_Surface* surface;
+
+	// please provide a path for your image
+	surface = IMG_Load("mario.png");
+
+	// loads image to our graphics hardware memory.
+	SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
+
+	// clears main-memory
+	SDL_FreeSurface(surface);
+
+	// let us control our image position
+	// so that we can move it with our keyboard.
+	SDL_Rect dest;
+
+	// connects our texture with dest to control position
+	SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
+
+	// adjust height and width of our image box.
+	dest.w /= 18;
+	dest.h /= 18;
+
+	// sets initial x-position of object
+	dest.x = 0;
+
+	// sets initial y-position of object
+	dest.y = 1000;
+	
+
+	// controls animation loop
+	int close = 0;
+
+	// speed of box
+	Barrel* list_tonneau = malloc(100 * sizeof(Barrel));
+	list_tonneau[0]=init_barrel(1,500,0,6);
+	//list_tonneau[1]=init_barrel(1,500,1,5);
+	int compteur=1;
+	int speed = 200;
+	int jump=-10;
+	int horizontal=0;
+	int vertical=0;
+	int ligne=1;
+	int senseM=1;
+	int aleatoire=0;
+
+	// animation loop
+	while (!close) {
+		SDL_Event event;
+		
+		
+			
+
+		// Events management
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+
+			case SDL_QUIT:
+				// handling of close button
+				close = 1;
+				break;
+
+			case SDL_KEYDOWN:
+				// keyboard API for key pressed
+				switch (event.key.keysym.scancode) {
+				case SDL_SCANCODE_W:
+				case SDL_SCANCODE_UP:
+					
+					break;
+				case SDL_SCANCODE_A:
+				case SDL_SCANCODE_LEFT:
+					horizontal = -speed / 30;
+					senseM=1;
+					break;
+				case SDL_SCANCODE_S:
+				case SDL_SCANCODE_DOWN:
+					horizontal=0;
+					break;
+				case SDL_SCANCODE_D:
+				case SDL_SCANCODE_RIGHT:
+				
+					horizontal=speed/30;
+					senseM=2;
+					break;
+				case SDL_SCANCODE_SPACE:
+					if(jump==-10 || jump==-9){
+					jump=10;}
+					
+					break;
+					
+				default: 
+					
+					break;
+				}
+			}
+		}
+		
+		if(jump>-9){
+				jump--;
+				dest.y=dest.y-jump;
+				}
+		if(horizontal!=0){
+		dest.x += horizontal;
+		}
+		if(dest.y +dest.h > 100){
+			ligne=6;}
+		if(dest.y + dest.h > 250){
+			ligne=5;}
+		if(dest.y+dest.h  > 400){
+			ligne=4;}
+		if(dest.y + dest.h > 550){
+			ligne=3;}
+		if(dest.y+dest.h > 700){
+			ligne=2;}
+		if(dest.y + dest.h > 850){
+			ligne=1;}	
+		// right boundary
+		printf("%d\n",limiteperso(ligne,dest.x)-dest.h);
+		if (dest.x /*+ dest.w*/ > 1000)
+			dest.x = 1000 /*- dest.w*/;
+
+		// left boundary
+		if (dest.x < 0)
+			dest.x = 0;
+
+		// bottom boundary
+		if (dest.y + dest.h > limiteperso(ligne,dest.x)+10)		 
+			dest.y = limiteperso(ligne,dest.x)- dest.h;
+
+		// upper boundary
+		if (dest.y < limiteperso(ligne,dest.x) && (jump==-9 ||jump==-10))
+			dest.y = limiteperso(ligne,dest.x)- dest.h;
+			
+		
+		// clears the screen
+		SDL_RenderClear(rend);
+		
+
+		// triggers the double buffers
+		// for multiple rendering
+		// Draw a diagonal line
+		
+		SDL_SetRenderDrawColor(rend, 255, 0, 0, 255); // set color to red
+		
+		SDL_RenderDrawLine(rend, 0, 1000, 1000, 850); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 1000, 850, 0, 700); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 0, 700, 1000, 550); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 1000, 550, 0, 400); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 0, 400, 1000, 250); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 1000, 250, 0, 100);
+		SDL_RenderDrawLine(rend, 1000, 100, 0, 100);
+		SDL_SetRenderDrawColor(rend, 255, 255, 0, 255);
+		aleatoire = rand() % 100 + 1;
+		if(aleatoire==100){
+		list_tonneau[compteur]=init_barrel(1,500,0,6);
+		if(compteur!=9){
+		compteur++;}
+		else{
+		compteur=0;}}
+		barrel_position(rend,list_tonneau);
+		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
+		if(senseM==2){
+		SDL_RenderCopy(rend, tex, NULL, &dest);}
+		if(senseM==1){
+		SDL_RenderCopyEx(rend, tex, NULL, &dest,0,NULL,SDL_FLIP_HORIZONTAL);}
+		
+
+		SDL_RenderPresent(rend);
+
+		// calculates to 60 fps
+		SDL_Delay(1000 / 80);
+	}
+
+	// destroy texture
+	SDL_DestroyTexture(tex);
+
+	// destroy renderer
+	SDL_DestroyRenderer(rend);
+
+	// destroy window
+	SDL_DestroyWindow(win);
+	
+	// close SDL
+	SDL_Quit();
+
+	return 0;
+}
+
+
