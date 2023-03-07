@@ -7,12 +7,14 @@
 #include <SDL2/SDL_ttf.h>
 #include "menu.h"
 #include "music.h"
-
+#include "sauvegarde.h"
+#include "loading.h"
 typedef struct Barrel {
     int x;
     int y;
     int sense;
     int ligne;
+    int statusscore;
 } Barrel;
 
 Barrel init_barrel(int x, int y, int sense, int ligne) {
@@ -21,6 +23,7 @@ Barrel init_barrel(int x, int y, int sense, int ligne) {
     new_barrel.y = y;
     new_barrel.sense = sense;
     new_barrel.ligne = ligne;
+    new_barrel.statusscore =0;
     return new_barrel;}
 Barrel gravite(Barrel B){
 	if(B.ligne%2==1){
@@ -63,11 +66,11 @@ void draw_filled_circle(SDL_Renderer* renderer, int x, int y, int radius) {
         x0++;
     }
 }
-int barrel_position(SDL_Renderer* renderer,Barrel* list,int x,int y){
+int barrel_position(SDL_Renderer* renderer,Barrel* list,int x,int y,int diff,int* score,int d){
 int i=0;
 int g=0;
-for(i;i<100;i++){
-if(list[i].y!=0){
+for(i;i<100+diff*5;i++){
+if(list[i].y>0 && list[i].y<1000 ){
 printf("%d \n",((x-list[i].x)*(x-list[i].x) + (y-list[i].y)*(y-list[i].y)));
 draw_filled_circle(renderer,list[i].x,list[i].y-10,8);
 if(((x+35-list[i].x)*(x+35-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 2000 || ((x+40-list[i].x)*(x+40-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 2000)
@@ -83,6 +86,10 @@ list[i].x=list[i].x-5;
 }
 list[i]=gravite(list[i]);
 
+}
+if(list[i].y>y && list[i].statusscore==0){
+list[i].statusscore=1;
+*score+=200 +100*d;
 }}
 return g;}
 
@@ -98,6 +105,7 @@ return 1000-((ligne*150-150)+(1000-x)*150/1000);}
 };
 int main(int argc, char *argv[])
 {
+	loadinggame(1);
  	srand(time(NULL));
 	// returns zero on success else non-zero
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -132,6 +140,14 @@ int main(int argc, char *argv[])
 
 	// please provide a path for your image
 	surface = IMG_Load("mario.png");
+	int a[11];
+	
+	
+	TTF_Font* font = TTF_OpenFont("arial.ttf", 500);
+    if (font == NULL) {
+        printf("Font could not be loaded! TTF_Error: %s\n", TTF_GetError());
+        return 1;
+    }
 
 	// loads image to our graphics hardware memory.
 	SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
@@ -160,13 +176,15 @@ int main(int argc, char *argv[])
 
 	// controls animation loop
 	int close = 0;
+	 
 
 	// speed of box
-	Barrel* list_tonneau = malloc(100 * sizeof(Barrel));
-	for(int z=0;z<100;z++){
+	int diff=1;
+	Barrel* list_tonneau = malloc(((100+diff*5) * sizeof(Barrel)));
+	for(int z=0;z<(100+diff*5);z++){
 	list_tonneau[z]=init_barrel(0,0,0,0);}
 	list_tonneau[0]=init_barrel(1,500,0,6);
-	//list_tonneau[1]=init_barrel(1,500,1,5);
+	char buffer[20];
 	int compteur=1;
 	int rota=3;
 	int speed = 200;
@@ -180,9 +198,16 @@ int main(int argc, char *argv[])
 	int timeur=200;
 	int game=-1;
 	int x, y;
+	int score=0;
+	int debug=0;
 	Mix_PlayMusic(music, -1);
 	affichageMenu(rend);
+	SDL_Rect rect = { 850, 100, surface->w, surface->h };
+	SDL_Color colori = {255, 255, 255};
+	SDL_Rect recscore ={850,1000,100};
+	
 	SDL_RenderPresent(rend);
+	
 	// animation loop
 	
 	while (!close) {
@@ -252,8 +277,37 @@ int main(int argc, char *argv[])
 					if(game==0){
 					if(jump==-10 || jump==-9){
 					jump=10;}}
+					if(game==-3){
+					// sets initial x-position of object
+					dest.x = 900;
+
+					// sets initial y-position of object
+					dest.y = 1000;
 					
-					break;
+					for(int z=0;z<(100+diff*5);z++){
+					list_tonneau[z]=init_barrel(0,0,0,0);}
+					list_tonneau[0]=init_barrel(1,500,0,6);
+					timeur=200;
+					compteur=1;
+					horizontal=0;
+					game=-0;}
+					if(game==-5){
+					// sets initial x-position of object
+					dest.x = 900;
+					horizontal=0;
+					// sets initial y-position of object
+					dest.y = 1000;
+					for(int z=0;z<(100+diff*5);z++){
+					SDL_RenderClear(rend);
+					list_tonneau[z]=init_barrel(0,0,0,0);}
+					list_tonneau[0]=init_barrel(1,500,0,6);
+					affichageMenu(rend);
+					score=0;
+					timeur=200;
+					compteur=1;
+					game=-1;}
+					
+					break; 
 				
 					
 				default: 
@@ -310,7 +364,7 @@ int main(int argc, char *argv[])
 		
 		// clears the screen
 		
-		if(game!=-1){SDL_RenderClear(rend);}
+		if(game>-1 ){SDL_RenderClear(rend);}
 		
 
 		// triggers the double buffers
@@ -334,22 +388,24 @@ int main(int argc, char *argv[])
 		SDL_RenderDrawLine(rend, 1000, 250, 0, 100);
 		SDL_RenderDrawLine(rend, 1000, 100, 0, 100);
 		SDL_SetRenderDrawColor(rend, 255, 255, 0, 255);
+		
+		
 		aleatoire = rand() % 100 + 1;
 		
 		if(game==0){
-		game=barrel_position(rend,list_tonneau,dest.x,dest.y);
+		game=barrel_position(rend,list_tonneau,dest.x,dest.y,diff,&score,diff);
 		}
 		else{
 		dest.y=dest.y+4;
-		if(barrel_position(rend,list_tonneau,dest.x,dest.y)){
+		if(barrel_position(rend,list_tonneau,dest.x,dest.y,diff,&debug,diff)){
 		jump=14;
 		}}
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		if(timeur==0){
-		if(aleatoire>90){
-		timeur=200;
+		if(aleatoire>90-diff){
+		timeur=200-diff*2;
 		list_tonneau[compteur]=init_barrel(1,500,0,6);
-		if(compteur!=99){
+		if(compteur!=99+diff*5){
 		compteur++;}
 		else{
 		compteur=0;}}
@@ -364,15 +420,35 @@ int main(int argc, char *argv[])
 		
 		
 		SDL_RenderCopyEx(rend, tex, NULL, &dest,rota,NULL,SDL_FLIP_NONE);
-		rota+=14;}}
+		rota+=14+diff*2;}
+		if(dest.y>950){
+		game=-2;}
+		}
+		if(dest.y<50){
+		game=-4;}
+		if(game==-2){
 		
-
+		replace(score);	
+		ecranGO(rend,score);
+		score=0;
+		game=-3;
+		}
+		if(game==-4){
+		
+		replace(score);
+		ecranWIN(rend,score);
+		
+		game=-5;}
+		
+		
+		
+	
 		SDL_RenderPresent(rend);
 
 		// calculates to 60 fps
 		SDL_Delay(1000 / 80);
 	}
-
+	
 	// destroy texture
 	SDL_DestroyTexture(tex);
 

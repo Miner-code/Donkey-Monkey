@@ -51,7 +51,7 @@ void affichageMenu(SDL_Renderer* renderer){
 	
 	SDL_Color color = { 255, 255, 255, 255 };
 	writeSmt(renderer, 500, 450, 275, 40, "Commencer une partie", color);
-	writeSmt(renderer, 500, 600, 300, 40, "Charger une sauvegarde", color);
+	writeSmt(renderer, 500, 600, 300, 40, "List highscore", color);
 	writeSmt(renderer, 500, 750, 150, 40, "Quitter", color);
 	writeSmt(renderer, 100, 775, 50, 20, "Ctrl", color);
 	
@@ -102,8 +102,33 @@ void AfficheScore(SDL_Renderer* renderer, int score){
 	SDL_Rect destination = { 850, 50, texteSurface->w, texteSurface->h };
     	SDL_RenderCopy(renderer, texteTexture, NULL, &destination);
 }
+void ecranGO(SDL_Renderer* renderer,int score){
+	char* buffer=malloc(sizeof(char)*20);
+	 sprintf(buffer, "score:%d", score);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+        SDL_Color colorGO = { 235, 0, 0, 255 };
+        writeSmt(renderer, 500, 400, 300, 100, "Game Over", colorGO);
+        SDL_Color colorGO2 = { 255, 255, 255, 255 };
+        writeSmt(renderer, 500, 500, 500, 50, "Appuyer sur espace pour relancer", colorGO2);
+        writeSmt(renderer, 500, 600, 500, 50, buffer, colorGO2);
 
 
+}
+void ecranWIN(SDL_Renderer* renderer,int score){
+	char* buffer=malloc(sizeof(char)*20);
+	 sprintf(buffer, "score:%d", score);
+    SDL_SetRenderDrawColor(renderer, 244, 102, 27, 255);
+  SDL_RenderClear(renderer);
+        SDL_Color colorWIN = { 235, 200, 0, 255 };
+        writeSmt(renderer, 500, 400, 350, 100, "Niveau reussi", colorWIN);
+        SDL_Color colorWIN2 = { 255, 255, 255, 255 };
+        writeSmt(renderer, 500, 500, 600, 50, "Appuyer sur espace pour retourner au menu", colorWIN2);
+        writeSmt(renderer, 500, 600, 500, 50, buffer, colorWIN2);
+
+
+}
 
 
 
