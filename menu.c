@@ -13,7 +13,7 @@ void drawRectangle(SDL_Renderer* renderer, int x, int y, int w, int h)
 
 int writeSmt(SDL_Renderer* renderer, int x, int y, int w, int h, const char * mot, SDL_Color color){
 	
-	TTF_Font* font = TTF_OpenFont("arial.ttf", 28);
+	TTF_Font* font = TTF_OpenFont("arial.ttf", 500);
     if (font == NULL) {
         printf("Font could not be loaded! TTF_Error: %s\n", TTF_GetError());
         return 1;
@@ -33,10 +33,12 @@ int writeSmt(SDL_Renderer* renderer, int x, int y, int w, int h, const char * mo
     }
 
     // Render the texture
+    
     SDL_Rect dstRect = { x - w/2, y - h/2, w, h };
     SDL_RenderCopy(renderer, texture, NULL, &dstRect);
-    
     SDL_DestroyTexture(texture);
+    
+   
 }
 
 void affichageMenu(SDL_Renderer* renderer){
@@ -60,7 +62,7 @@ void affichageMenu(SDL_Renderer* renderer){
 
 void affichectrl(SDL_Renderer* renderer, int var){
 	if(var == 0){
-		SDL_SetRenderDrawColor(renderer, 90, 58, 34, 255);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		drawRectangle(renderer, 50, 500, 200, 225);
 	} 
 	else {
@@ -101,87 +103,8 @@ void AfficheScore(SDL_Renderer* renderer, int score){
     	SDL_RenderCopy(renderer, texteTexture, NULL, &destination);
 }
 
-int main(int argc, char* argv[]) {
-  // Initialiser SDL
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    printf("Erreur lors de l'initialisation de SDL : %s\n", SDL_GetError());
-    return 1;
-  }
-
-  // Créer une fenêtre et un renderer
-  SDL_Window* window = SDL_CreateWindow("Menu graphique", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 900, 0);
-  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
- /* // Charger une image et créer une texture avec cette image
-  SDL_Surface* image_surface = SDL_LoadBMP("image.bmp");
-  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image_surface);
-*/
-  // Afficher la texture à l'écran
-  //SDL_RenderCopy(renderer, texture, NULL, NULL);
-  SDL_SetRenderDrawColor(renderer, 90, 58, 34, 255); // Set the drawing color to red
-  SDL_RenderClear(renderer); // Clear the entire screen with the given color
-  SDL_RenderPresent(renderer); // Update the screen
-
-
-// Initialize TTFz
-    if (TTF_Init() < 0) {
-        printf("TTF could not initialize! TTF_Error: %s\n", TTF_GetError());
-        return 1;
-    }
 
 
 
-  //Fonction afficahge du menu
-	affichageMenu(renderer);
-	AfficheScore(renderer, 1);
-	SDL_RenderPresent(renderer);
-  // Attendre les événements
-  SDL_Event event;
-  int quit = 0;
-  int x, y;
-  int etatctrl = 0;
-  while (!quit) {
-    SDL_WaitEvent(&event);
-    switch (event.type) {
-      case SDL_QUIT:
-        quit = 1;
-        break;
-      case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
-          quit = 1;
-        }
-        break;
-      case SDL_MOUSEBUTTONDOWN:
-      	SDL_GetMouseState(&x, &y);
-      	
-      	//Création des zone de clique
-      	
-	if (x >= 300 && x <= 700 && y >= 400 && y <= 500) {
-                        printf("Clic dans la zone de clique !\n");
-                    }
-	if (x >= 300 && x <= 700 && y >= 550 && y <= 650) {
-                        printf("Clic 2\n");
-                    }
-        if (x >= 300 && x <= 700 && y >= 700 && y <= 800) {
-                        quit = 1;
-                    }
-        if (x >= 50 && x <= 150 && y >= 750 && y <= 800) {
-                        if(etatctrl == 0)
-                        	etatctrl = 1;
-                        else
-                        	etatctrl = 0;
-                    }
-    }
-    affichectrl(renderer, etatctrl);
-    SDL_RenderPresent(renderer);
-  }
 
-  // Nettoyer la mémoire
-  
-  //SDL_FreeSurface(image_surface);
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-SDL_Quit();
 
-return 0;
-}

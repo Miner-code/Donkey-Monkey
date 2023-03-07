@@ -4,6 +4,8 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_mixer.h>
 #include <time.h>
+#include <SDL2/SDL_ttf.h>
+#include "menu.h"
 #include "music.h"
 
 typedef struct Barrel {
@@ -105,6 +107,12 @@ int main(int argc, char *argv[])
 	{
 		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
 	}
+	// Initialize TTFz
+    if (TTF_Init() < 0) {
+        printf("TTF could not initialize! TTF_Error: %s\n", TTF_GetError());
+        return 1;
+    }
+
 	SDL_Window* win = SDL_CreateWindow("Donkey_kong", // creates a window
 									SDL_WINDOWPOS_CENTERED,
 									SDL_WINDOWPOS_CENTERED,
@@ -141,6 +149,7 @@ int main(int argc, char *argv[])
 	// adjust height and width of our image box.
 	dest.w /= 18;
 	dest.h /= 18;
+	SDL_Point center = {0, 0};
 
 	// sets initial x-position of object
 	dest.x = 900;
@@ -159,18 +168,25 @@ int main(int argc, char *argv[])
 	list_tonneau[0]=init_barrel(1,500,0,6);
 	//list_tonneau[1]=init_barrel(1,500,1,5);
 	int compteur=1;
+	int rota=3;
 	int speed = 200;
 	int jump=-10;
 	int horizontal=0;
 	int vertical=0;
+	int etatctrl = 0;
 	int ligne=1;
 	int senseM=1;
 	int aleatoire=0;
 	int timeur=200;
-	int game=0;
+	int game=-1;
+	int x, y;
 	Mix_PlayMusic(music, -1);
+	affichageMenu(rend);
+	SDL_RenderPresent(rend);
 	// animation loop
+	
 	while (!close) {
+		
 		SDL_Event event;
 		
 		
@@ -178,18 +194,43 @@ int main(int argc, char *argv[])
 
 		// Events management
 		while (SDL_PollEvent(&event)) {
+			
 			switch (event.type) {
 
 			case SDL_QUIT:
 				// handling of close button
 				close = 1;
 				break;
+			case SDL_MOUSEBUTTONDOWN:
+					if(game==-1){
+				      	SDL_GetMouseState(&x, &y);
+				      	
+				      	//Création des zone de clique
+				      	
+					if (x >= 300 && x <= 700 && y >= 400 && y <= 500) {
+							game=0;
+						    }
+					if (x >= 300 && x <= 700 && y >= 550 && y <= 650) {
+							printf("Clic 2\n");
+						    }
+					if (x >= 300 && x <= 700 && y >= 700 && y <= 800) {
+							close = 1;
+						    }
+					if (x >= 50 && x <= 150 && y >= 750 && y <= 800) {
+							if(etatctrl == 0)
+								etatctrl = 1;
+							else
+								etatctrl = 0;
+						    }
+				    }
+				    break;
 
 			case SDL_KEYDOWN:
 				// keyboard API for key pressed
 				switch (event.key.keysym.scancode) {
 				case SDL_SCANCODE_W:
 				case SDL_SCANCODE_UP:
+					
 					
 					break;
 				case SDL_SCANCODE_A:
@@ -208,10 +249,12 @@ int main(int argc, char *argv[])
 					senseM=2;
 					break;
 				case SDL_SCANCODE_SPACE:
+					if(game==0){
 					if(jump==-10 || jump==-9){
-					jump=10;}
+					jump=10;}}
 					
 					break;
+				
 					
 				default: 
 					
@@ -219,6 +262,12 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+		if(game==-1){
+		
+		AfficheScore(rend, 1);
+		
+		affichectrl(rend, etatctrl);}
+		
 		
 		if(jump>-9){
 				jump--;
@@ -247,28 +296,34 @@ int main(int argc, char *argv[])
 		// left boundary
 		if (dest.x < 0)
 			dest.x = 0;
-
+		if(game==0){
 		// bottom boundary
 		if (dest.y + dest.h > limiteperso(ligne,dest.x)+10)		 
 			dest.y = limiteperso(ligne,dest.x)- dest.h;
 
 		// upper boundary
 		if (dest.y < limiteperso(ligne,dest.x) && (jump==-9 ||jump==-10))
-			dest.y = limiteperso(ligne,dest.x)- dest.h;
+			dest.y = limiteperso(ligne,dest.x)- dest.h;}
+		
+			
 			
 		
 		// clears the screen
 		
-		SDL_RenderClear(rend);
+		if(game!=-1){SDL_RenderClear(rend);}
 		
 
 		// triggers the double buffers
 		// for multiple rendering
 		// Draw a diagonal line
+		if(game==0|| game==1){
 		if(game==1){
 		SDL_SetRenderDrawColor(rend, 128, 0, 128, 255);
 		}
+		
+		
 		else{
+		
 		SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);} // set color to red
 		
 		SDL_RenderDrawLine(rend, 0, 1000, 1000, 850); // draw a line from top-left to bottom-right
@@ -280,9 +335,19 @@ int main(int argc, char *argv[])
 		SDL_RenderDrawLine(rend, 1000, 100, 0, 100);
 		SDL_SetRenderDrawColor(rend, 255, 255, 0, 255);
 		aleatoire = rand() % 100 + 1;
+		
+		if(game==0){
+		game=barrel_position(rend,list_tonneau,dest.x,dest.y);
+		}
+		else{
+		dest.y=dest.y+4;
+		if(barrel_position(rend,list_tonneau,dest.x,dest.y)){
+		jump=14;
+		}}
+		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		if(timeur==0){
 		if(aleatoire>90){
-		timeur=500;
+		timeur=200;
 		list_tonneau[compteur]=init_barrel(1,500,0,6);
 		if(compteur!=99){
 		compteur++;}
@@ -290,12 +355,16 @@ int main(int argc, char *argv[])
 		compteur=0;}}
 		}
 		else{timeur--;}
-		game=barrel_position(rend,list_tonneau,dest.x,dest.y);
-		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
+		if(game==0){
 		if(senseM==2){
 		SDL_RenderCopy(rend, tex, NULL, &dest);}
 		if(senseM==1){
-		SDL_RenderCopyEx(rend, tex, NULL, &dest,0,NULL,SDL_FLIP_HORIZONTAL);}
+		SDL_RenderCopyEx(rend, tex, NULL, &dest,0,NULL,SDL_FLIP_HORIZONTAL);}}
+		if(game==1){
+		
+		
+		SDL_RenderCopyEx(rend, tex, NULL, &dest,rota,NULL,SDL_FLIP_NONE);
+		rota+=14;}}
 		
 
 		SDL_RenderPresent(rend);
