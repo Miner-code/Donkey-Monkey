@@ -27,10 +27,10 @@ Barrel init_barrel(int x, int y, int sense, int ligne) {
     return new_barrel;}
 Barrel gravite(Barrel B){
 	if(B.ligne%2==1){
-	//printf("%d\n",1000-((ligne*150)-150+x*150/1000));
+	
 	B.y= 1000-((B.ligne*150)-150+B.x*150/1000);}
 	else{
-	//printf("%d\n",1000-((ligne*150-150)+(1000-x)*150/1000));
+	
 	B.y= 1000-((B.ligne*150-150)+(1000-B.x)*150/1000);}
 	if(B.x<0){
 		B.sense=0;
@@ -71,7 +71,6 @@ int i=0;
 int g=0;
 for(i;i<100+diff*5;i++){
 if(list[i].y>0 && list[i].y<1000 ){
-printf("%d \n",((x-list[i].x)*(x-list[i].x) + (y-list[i].y)*(y-list[i].y)));
 draw_filled_circle(renderer,list[i].x,list[i].y-10,8);
 if(((x+35-list[i].x)*(x+35-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 2000 || ((x+40-list[i].x)*(x+40-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 2000)
 {
@@ -96,10 +95,10 @@ return g;}
 
 int limiteperso(int ligne,int x){
 if(ligne%2==1){
-//printf("%d\n",1000-((ligne*150)-150+x*150/1000));
+
 return 1000-((ligne*150)-150+x*150/1000);}
 else{
-//printf("%d\n",1000-((ligne*150-150)+(1000-x)*150/1000));
+
 return 1000-((ligne*150-150)+(1000-x)*150/1000);}
 
 };
@@ -318,7 +317,6 @@ int main(int argc, char *argv[])
 		}
 		if(game==-1){
 		
-		AfficheScore(rend, 1);
 		
 		affichectrl(rend, etatctrl);}
 		
@@ -343,7 +341,6 @@ int main(int argc, char *argv[])
 		if(dest.y + dest.h > 850){
 			ligne=1;}	
 		// right boundary
-		//printf("%d\n",limiteperso(ligne,dest.x)-dest.h);
 		if (dest.x /*+ dest.w*/ > 1000)
 			dest.x = 1000 /*- dest.w*/;
 
