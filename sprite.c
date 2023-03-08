@@ -66,7 +66,7 @@ void draw_filled_circle(SDL_Renderer* renderer, int x, int y, int radius) {
         x0++;
     }
 }
-int barrel_position(SDL_Renderer* renderer,Barrel* list,int x,int y,int diff,int* score,int d){
+int barrel_position(SDL_Renderer* renderer,Barrel* list,int x,int y,int diff,int* score,int d,int vitesse){
 int i=0;
 int g=0;
 for(i;i<100+diff*5;i++){
@@ -78,10 +78,10 @@ if(((x+35-list[i].x)*(x+35-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 20
     g = 1;
 }
 if(list[i].sense==0){
-list[i].x=list[i].x+5;
+list[i].x=list[i].x+5+vitesse/5;
 }
 else{
-list[i].x=list[i].x-5;
+list[i].x=list[i].x-5-vitesse/5;
 }
 list[i]=gravite(list[i]);
 
@@ -104,6 +104,10 @@ return 1000-((ligne*150-150)+(1000-x)*150/1000);}
 };
 int main(int argc, char *argv[])
 {
+	int diff=1;
+	printf("choix de la difficluté : ");
+	scanf("%d",&diff);
+	printf("\n");
 	loadinggame(1);
  	srand(time(NULL));
 	// returns zero on success else non-zero
@@ -136,9 +140,11 @@ int main(int argc, char *argv[])
 	
 	// creates a surface to load an image into the main memory
 	SDL_Surface* surface;
+	SDL_Surface* surfaces;
 
 	// please provide a path for your image
 	surface = IMG_Load("mario.png");
+	surfaces = IMG_Load("kong.png");
 	int a[11];
 	
 	
@@ -150,27 +156,35 @@ int main(int argc, char *argv[])
 
 	// loads image to our graphics hardware memory.
 	SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
+	SDL_Texture* text = SDL_CreateTextureFromSurface(rend, surfaces);
 
 	// clears main-memory
 	SDL_FreeSurface(surface);
+	SDL_FreeSurface(surfaces);
 
 	// let us control our image position
 	// so that we can move it with our keyboard.
 	SDL_Rect dest;
+	SDL_Rect destk;
 
 	// connects our texture with dest to control position
 	SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
+	SDL_QueryTexture(tex, NULL, NULL, &destk.w, &destk.h);
 
 	// adjust height and width of our image box.
 	dest.w /= 18;
 	dest.h /= 18;
-	SDL_Point center = {0, 0};
+	destk.w /= 14;
+	destk.h /= 14;
+	
 
 	// sets initial x-position of object
 	dest.x = 900;
+	destk.x = 100;
 
 	// sets initial y-position of object
 	dest.y = 1000;
+	destk.y = 20;
 	
 
 	// controls animation loop
@@ -178,7 +192,6 @@ int main(int argc, char *argv[])
 	 
 
 	// speed of box
-	int diff=1;
 	Barrel* list_tonneau = malloc(((100+diff*5) * sizeof(Barrel)));
 	for(int z=0;z<(100+diff*5);z++){
 	list_tonneau[z]=init_barrel(0,0,0,0);}
@@ -197,6 +210,7 @@ int main(int argc, char *argv[])
 	int timeur=200;
 	int game=-1;
 	int x, y;
+	int vitesse=0;
 	int score=0;
 	int debug=0;
 	Mix_PlayMusic(music, -1);
@@ -235,7 +249,7 @@ int main(int argc, char *argv[])
 							game=0;
 						    }
 					if (x >= 300 && x <= 700 && y >= 550 && y <= 650) {
-							printf("Clic 2\n");
+							game=-6;
 						    }
 					if (x >= 300 && x <= 700 && y >= 700 && y <= 800) {
 							close = 1;
@@ -305,6 +319,12 @@ int main(int argc, char *argv[])
 					timeur=200;
 					compteur=1;
 					game=-1;}
+					if(game==-7){
+					game=-1;
+					SDL_RenderClear(rend);
+					SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
+		
+					affichageMenu(rend);}
 					
 					break; 
 				
@@ -376,31 +396,34 @@ int main(int argc, char *argv[])
 		else{
 		
 		SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);} // set color to red
-		
-		SDL_RenderDrawLine(rend, 0, 1000, 1000, 850); // draw a line from top-left to bottom-right
-		SDL_RenderDrawLine(rend, 1000, 850, 0, 700); // draw a line from top-left to bottom-right
-		SDL_RenderDrawLine(rend, 0, 700, 1000, 550); // draw a line from top-left to bottom-right
-		SDL_RenderDrawLine(rend, 1000, 550, 0, 400); // draw a line from top-left to bottom-right
-		SDL_RenderDrawLine(rend, 0, 400, 1000, 250); // draw a line from top-left to bottom-right
-		SDL_RenderDrawLine(rend, 1000, 250, 0, 100);
-		SDL_RenderDrawLine(rend, 1000, 100, 0, 100);
+		for(int j=0;j<3;j++){
+		SDL_RenderDrawLine(rend, 0, 1000+j, 1000, 850+j); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 1000, 850+j, 0, 700+j); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 0, 700+j, 1000, 550+j); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 1000, 550+j, 0, 400+j); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 0, 400+j, 1000, 250+j); // draw a line from top-left to bottom-right
+		SDL_RenderDrawLine(rend, 1000, 250+j, 0, 100+j);
+		SDL_RenderDrawLine(rend, 1000, 100+j, 0, 100+j);}
 		SDL_SetRenderDrawColor(rend, 255, 255, 0, 255);
 		
 		
 		aleatoire = rand() % 100 + 1;
 		
 		if(game==0){
-		game=barrel_position(rend,list_tonneau,dest.x,dest.y,diff,&score,diff);
+		game=barrel_position(rend,list_tonneau,dest.x,dest.y,diff,&score,diff,vitesse);
 		}
 		else{
 		dest.y=dest.y+4;
-		if(barrel_position(rend,list_tonneau,dest.x,dest.y,diff,&debug,diff)){
+		if(barrel_position(rend,list_tonneau,dest.x,dest.y,diff,&debug,diff,vitesse)){
 		jump=14;
 		}}
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 		if(timeur==0){
+		
 		if(aleatoire>90-diff){
 		timeur=200-diff*2;
+		vitesse++;
+		
 		list_tonneau[compteur]=init_barrel(1,500,0,6);
 		if(compteur!=99+diff*5){
 		compteur++;}
@@ -410,18 +433,21 @@ int main(int argc, char *argv[])
 		else{timeur--;}
 		if(game==0){
 		if(senseM==2){
-		SDL_RenderCopy(rend, tex, NULL, &dest);}
+		SDL_RenderCopy(rend, tex, NULL, &dest);
+		SDL_RenderCopy(rend, text, NULL, &destk);}
 		if(senseM==1){
-		SDL_RenderCopyEx(rend, tex, NULL, &dest,0,NULL,SDL_FLIP_HORIZONTAL);}}
+		SDL_RenderCopyEx(rend, tex, NULL, &dest,0,NULL,SDL_FLIP_HORIZONTAL);
+		SDL_RenderCopy(rend, text, NULL, &destk);}}
 		if(game==1){
 		
 		
 		SDL_RenderCopyEx(rend, tex, NULL, &dest,rota,NULL,SDL_FLIP_NONE);
 		rota+=14+diff*2;}
-		if(dest.y>950){
+		if(dest.y>950 ){
 		game=-2;}
 		}
-		if(dest.y<50){
+		if(dest.y<50 && game==0){
+		replace(score);	
 		game=-4;}
 		if(game==-2){
 		
@@ -432,10 +458,13 @@ int main(int argc, char *argv[])
 		}
 		if(game==-4){
 		
-		replace(score);
+		
 		ecranWIN(rend,score);
 		
 		game=-5;}
+		if(game==-6){
+		ecranscore(rend);
+		game=-7;}
 		
 		
 		

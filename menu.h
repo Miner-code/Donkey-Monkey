@@ -5,3 +5,4 @@ void affichectrl(SDL_Renderer* renderer, int var);
 void AfficheScore(SDL_Renderer* renderer, int score);
 void ecranGO(SDL_Renderer* renderer,int score);
 void ecranWIN(SDL_Renderer* renderer,int score);
+void ecranscore(SDL_Renderer* renderer);

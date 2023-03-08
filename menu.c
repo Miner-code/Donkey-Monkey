@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
+#define MAX_NUMS 10
 
 void drawRectangle(SDL_Renderer* renderer, int x, int y, int w, int h)
 {
@@ -51,7 +52,7 @@ void affichageMenu(SDL_Renderer* renderer){
 	
 	SDL_Color color = { 255, 255, 255, 255 };
 	writeSmt(renderer, 500, 450, 275, 40, "Commencer une partie", color);
-	writeSmt(renderer, 500, 600, 300, 40, "List highscore", color);
+	writeSmt(renderer, 500, 600, 300, 40, "Liste highscore", color);
 	writeSmt(renderer, 500, 750, 150, 40, "Quitter", color);
 	writeSmt(renderer, 100, 775, 50, 20, "Ctrl", color);
 	
@@ -126,6 +127,45 @@ void ecranWIN(SDL_Renderer* renderer,int score){
         SDL_Color colorWIN2 = { 255, 255, 255, 255 };
         writeSmt(renderer, 500, 500, 600, 50, "Appuyer sur espace pour retourner au menu", colorWIN2);
         writeSmt(renderer, 500, 600, 500, 50, buffer, colorWIN2);
+
+
+}
+void ecranscore(SDL_Renderer* renderer){ 
+	char* buffer=malloc(sizeof(char)*20);
+	 
+    SDL_SetRenderDrawColor(renderer, 132, 46, 27, 255);
+  SDL_RenderClear(renderer);
+        SDL_Color colorWIN = { 235, 200, 0, 255 };
+        writeSmt(renderer, 500, 200, 350, 100, "Tableau highscore", colorWIN);
+        SDL_Color colorWIN2 = { 255, 255, 255, 255 };
+         int nums[MAX_NUMS + 1];  // Add an extra slot for the new number
+    int num_count = 0;
+
+    FILE *fp = fopen("integers.txt", "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Could not open file integers.txt\n");
+        
+    }
+
+    // Read in the existing numbers from the file
+    while (fscanf(fp, "%d", &nums[num_count]) == 1) {
+        num_count++;
+        if (num_count > MAX_NUMS) {
+            break;
+        }
+    }
+    fclose(fp);
+    
+
+    for (int i = 0; i < num_count; i++) {
+        sprintf(buffer, "score:%d", nums[i]);
+        if(nums[i]>0){
+        writeSmt(renderer, 500, 300+50*i, 800, 75,buffer, colorWIN2);
+        }
+    }
+
+        writeSmt(renderer, 500, 800, 800, 50, "Appuyer sur espace pour retourner au menu", colorWIN2);
+        
 
 
 }
