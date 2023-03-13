@@ -78,10 +78,10 @@ if(((x+35-list[i].x)*(x+35-list[i].x) + (y-list[i].y+40)*(y-list[i].y+40)) <= 20
     g = 1;
 }
 if(list[i].sense==0){
-list[i].x=list[i].x+5+vitesse/5;
+list[i].x=list[i].x+5+vitesse/5+d/3;
 }
 else{
-list[i].x=list[i].x-5-vitesse/5;
+list[i].x=list[i].x-5-vitesse/5-d/3;
 }
 list[i]=gravite(list[i]);
 
@@ -104,10 +104,11 @@ return 1000-((ligne*150-150)+(1000-x)*150/1000);}
 };
 int main(int argc, char *argv[])
 {
-	int diff=1;
+	int diff=-1;
+	while(diff<0 || diff>99){;
 	printf("choix de la difficluté : ");
 	scanf("%d",&diff);
-	printf("\n");
+	printf("\n");}
 	loadinggame(1);
  	srand(time(NULL));
 	// returns zero on success else non-zero
@@ -418,7 +419,7 @@ int main(int argc, char *argv[])
 		jump=14;
 		}}
 		SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
-		if(timeur==0){
+		if(timeur<0){
 		
 		if(aleatoire>90-diff){
 		timeur=200-diff*2;
@@ -451,8 +452,8 @@ int main(int argc, char *argv[])
 		game=-4;}
 		if(game==-2){
 		
-		replace(score);	
-		ecranGO(rend,score);
+		replace(score/3);	
+		ecranGO(rend,score/3);
 		score=0;
 		game=-3;
 		}
